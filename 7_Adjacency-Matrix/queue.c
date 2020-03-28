@@ -10,18 +10,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <malloc.h>
-
-#define MAX_LENGTH 256
-
-typedef struct queue_s queue_s;
-struct queue_s {
-    size_t buf[MAX_LENGTH];
-    size_t start;
-    size_t length;
-};
+#include "queue.h"
 
 size_t q_pop(queue_s* Queue) {
-    if (Queue->length > 0) {
+    if (Queue && Queue->length > 0) {
         size_t last = (Queue->start + Queue->length - 1) % MAX_LENGTH;
         Queue->length -= 1;
         return Queue->buf[last];
@@ -30,7 +22,7 @@ size_t q_pop(queue_s* Queue) {
 }
 
 size_t q_push(queue_s* Queue, size_t x) {
-    if (Queue->length == MAX_LENGTH)
+    if (!Queue || Queue->length == MAX_LENGTH)
         return SIZE_MAX;
     Queue->start = (Queue->start - 1) % MAX_LENGTH;
     Queue->length += 1;
@@ -39,6 +31,8 @@ size_t q_push(queue_s* Queue, size_t x) {
 }
 
 size_t q_peek(queue_s* Queue) {
+    if (!Queue)
+        return SIZE_MAX;
     if (Queue->length) {
         return Queue->buf[(Queue->start + Queue->length - 1) % MAX_LENGTH];
     }
@@ -46,21 +40,28 @@ size_t q_peek(queue_s* Queue) {
 }
 
 void q_print(queue_s* Queue) {
+    if (Queue) {
     size_t last = (Queue->start + Queue->length) % MAX_LENGTH;
     for (size_t i = Queue->start; i != last; i = (i + 1) % MAX_LENGTH)
         printf("%zu\t", Queue->buf[i]);
     puts("");
+    }
 }
 
 bool q_isempty(queue_s* Queue) {
-    return (!Queue->length);
+    if (Queue)
+        return (!(Queue->length));
+    else
+        return true;
 }
 
 bool q_has(queue_s* Queue, size_t x) {
+    if (Queue) {
     size_t last = (Queue->start + Queue->length) % MAX_LENGTH;
     for (size_t i = Queue->start; i != last; i = (i + 1) % MAX_LENGTH)
         if (Queue->buf[i] == x)
             return true;
+    }
     return false;
 }
 
