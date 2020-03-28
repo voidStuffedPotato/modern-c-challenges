@@ -3,7 +3,7 @@
  * linear algebra. Can you write functions that do vector-to-vector or
  * matrix-to-vector products at this point? What about Gauss elimination or
  * iterative algorithms for matrix inversion?
- * TODO: matrix inversion
+ * TODO: doxygen
  */
 
 #include <malloc.h>
@@ -17,49 +17,7 @@ double *vec_to_mat(size_t m, size_t n, double vec[m], double arr[m][n]);
 void vec_to_scal(size_t n, double a[n], double lambda);
 void vec_w_sum(size_t n, double a[n], double b[n], double lambda);
 int gauss_elimination(size_t m, size_t n, double arr[m][n]);
-int inverse(size_t n, double[n][n]);
-double **mat_to_mat(size_t m, size_t n, size_t k, double A[m][n],
-                    double B[n][k]);
-void print_vec(size_t n, double a[n]);
-void print_arr(size_t m, size_t n, double arr[m][n]);
-void print_mat(size_t m, size_t n, double** mat);
-
-int main() {
-    double A[4][4] = {[0] = {1, 0, 1, 0},
-                      [1] = {0, 0, 1, 0},
-                      [2] = {0, 2, 1, 0},
-                      [3] = {1, 4.5, 3, 1}
-                     };
-    int ret = gauss_elimination(4, 4, A);
-    double b[4][4] = {{1,2,3,4},{2,3,4,5},{3,4,5,6},{4,5,6,7}};
-    if (ret == 0) {
-        print_arr(4, 4, A);
-    }
-    double** c = mat_to_mat(4, 4, 4, b, b);
-    print_mat(4, 4, c);
-    free(c);
-    return 0;
-}
-
-void print_vec(size_t n, double a[n]) {
-    for (size_t i = 0; i < n; ++i)
-        printf("%.3f\t", a[i]);
-    printf("\n");
-}
-
-void print_arr(size_t m, size_t n, double arr[m][n]) {
-    printf("{\n");
-    for (size_t i = 0; i < m; i++)
-        print_vec(n, arr[i]);
-    printf("}\n");
-}
-
-void print_mat(size_t m, size_t n, double **arr) {
-    printf("{\n");
-    for (size_t i = 0; i < m; i++)
-        print_vec(n, arr[i]);
-    printf("}\n");
-}
+int inverse(size_t n, double[n][n], double*** inv);
 
 double scal_prod(size_t n, double a[n], double b[n]) {
     double res = 0;
@@ -93,7 +51,10 @@ void vec_to_scal(size_t n, double a[n], double lambda) {
 }
 
 double **eye(size_t n) {
-    double **ret_mat = calloc(n, sizeof(double *) * n);
+    double **ret_mat = calloc(n, sizeof(double *));
+    for (size_t i = 0; i < n; ++i) {
+        ret_mat[i] = calloc(n, sizeof(double));
+    }
     if (ret_mat) {
         for (size_t i = 0; i < n; ++i)
             if (ret_mat[i])
@@ -138,11 +99,49 @@ int gauss_elimination(size_t m, size_t n, double arr[m][n]) {
     return 0;
 }
 
-double **mat_to_mat(size_t m, size_t n, size_t k, double A[m][n],
-                    double B[n][k]) {
-    double **ret_val = 0;
-    ret_val = calloc(m, sizeof(double*));
-    for (size_t i = 0; i < m; ++i)
-        ret_val[i] = vec_to_mat(n, k, A[i], B);
-    return ret_val;
+int inverse(size_t n, double arr[n][n], double*** inv) {
+    if (*inv) {
+        free(*inv);
+        *inv = 0;
+    }
+    *inv = eye(n);
+    if (!(*inv)) {
+        return -2;
+    }
+    // gauss_elimination for arr
+    for (size_t j = 0; j < n; ++j) {
+        bool found = false;
+        size_t nonzero = 0;
+        for (size_t i = j; i < n; ++i) {
+            if (arr[i][j] != 0) {
+                found = true;
+                nonzero = i;
+                break;
+            }
+        }
+        if (found) {
+            swap(n, arr[j], arr[nonzero]);
+            swap(n, (*inv)[j], (*inv)[nonzero]);
+            double curr = arr[j][j];
+            vec_to_scal(n, arr[j], curr ? (1.0 / curr) : 1.0);
+            vec_to_scal(n, (*inv)[j], curr ? (1.0 / curr) : 1.0);
+            for (size_t i = j + 1; i < n; ++i) {
+                curr = arr[i][j];
+                vec_w_sum(n, arr[i], arr[j], -1.0 * arr[i][j]);
+                vec_w_sum(n, (*inv)[i], (*inv)[j], -1.0 * curr);
+            }
+        } else
+            return -1;
+    }
+    // transforming arr to E(n)
+    for (size_t j = 1; j < n; ++j) {
+        for (size_t i = 0; i < j; ++i) {
+            double curr = arr[i][j];
+            if (curr) {
+                vec_w_sum(n, arr[i], arr[j], -1.0 * curr);
+                vec_w_sum(n, (*inv)[i], (*inv)[j], -1.0 * curr);
+            }
+        }
+    }
+    return 0;
 }
