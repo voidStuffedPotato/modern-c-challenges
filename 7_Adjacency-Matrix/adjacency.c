@@ -9,31 +9,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#define MAX_LENGTH 256
+#include "queue.h"
 
 bool bfs(size_t m, bool G[m][m], size_t start, size_t end);
-size_t q_pop();
-size_t q_push(size_t x);
-size_t q_peek();
-bool q_isempty();
-bool q_has(size_t x);
-void q_print();
-
-typedef struct queue queue;
-struct queue {
-    size_t buf[MAX_LENGTH];
-    size_t start;
-    size_t length;
-};
-
-static queue Queue;
 
 bool G[5][5] = {{false, true, false, false, false},
-                {false, false, false, false, false},
-                {false, false, false, true, false},
-                {false, false, false, false, true},
-                {false, false, false, false, false},
+    {true, false, true, false, false},
+    {false, false, true, true, false},
+    {false, false, false, false, true},
+    {false, false, false, false, false},
 };
 
 int main() {
@@ -45,63 +29,25 @@ bool bfs(size_t m, bool G[m][m], size_t start, size_t end) {
     int colors[m];
     for (size_t i = 0; i < m; ++i)
         colors[i] = 0;
+    queue_s* Queue = q_init();
 
-    q_push(start);
+    q_push(Queue, start);
     colors[start] = 1;
 
-    while (!q_isempty()) {
-        size_t curr = q_pop();
+    while (!q_isempty(Queue)) {
+        size_t curr = q_pop(Queue);
         colors[curr] = 2;
-        if (curr == end)
+        if (curr == end) {
+            q_destroy(Queue);
             return true;
+        }
 
         for (size_t i = 0; i < m; i++)
-            if (G[curr][i] && colors[i] == 0)
-                q_push(i);
+            if (G[curr][i] && colors[i] == 0) {
+                q_push(Queue, i);
+                colors[i] = 1;
+            }
     }
-    return false;
-}
-
-size_t q_pop() {
-    if (Queue.length > 0) {
-        size_t last = (Queue.start + Queue.length - 1) % MAX_LENGTH;
-        Queue.length -= 1;
-        return Queue.buf[last];
-    }
-    return SIZE_MAX;
-}
-
-size_t q_push(size_t x) {
-    if (Queue.length == MAX_LENGTH)
-        return SIZE_MAX;
-    Queue.start = (Queue.start - 1) % MAX_LENGTH;
-    Queue.length += 1;
-    Queue.buf[Queue.start] = x;
-    return 0;
-}
-
-size_t q_peek() {
-    if (Queue.length) {
-        return Queue.buf[(Queue.start + Queue.length - 1) % MAX_LENGTH];
-    }
-    return SIZE_MAX;
-}
-
-void q_print() {
-    size_t last = (Queue.start + Queue.length) % MAX_LENGTH;
-    for (size_t i = Queue.start; i != last; i = (i + 1) % MAX_LENGTH)
-        printf("%zu\t", Queue.buf[i]);
-    puts("");
-}
-
-bool q_isempty() {
-    return (!Queue.length);
-}
-
-bool q_has(size_t x) {
-    size_t last = (Queue.start + Queue.length) % MAX_LENGTH;
-    for (size_t i = Queue.start; i != last; i = (i + 1) % MAX_LENGTH)
-        if (Queue.buf[i] == x)
-            return true;
+    q_destroy(Queue);
     return false;
 }
