@@ -11,97 +11,112 @@
 #include <stdint.h>
 #include "queue.h"
 
-bool bfs(size_t m, bool G[m][m], size_t start, size_t end);
-size_t print_conn_comps(size_t m, bool G[m][m]);
+enum {COLOR_WHITE, COLOR_GREY, COLOR_BLACK, } node_color_t;
 
-bool G[5][5] = {{false, false, false, false, false},
-    {false, false, false, false, false},
-    {false, false, false, false, false},
-    {false, false, false, false, false},
-    {false, false, false, false, false},
+bool            bfs(size_t m, bool G[m][m], size_t start, size_t end);
+size_t          get_conn_comps(size_t m, bool G[m][m], bool show);
+bool            spanning_tree(size_t m, bool G[m][m]);
+
+bool G[5][5] = {{false, true, false, false, false},
+                {false, false, true, false, false},
+                {false, false, false, true, false},
+                {false, false, false, false, true},
+                {true, false, false, false, false},
 };
 
-int main() {
+int
+main() {
     printf("%s\n", bfs(5, G, 0, 4) ? "true" : "false");
-    print_conn_comps(5, G);
+    get_conn_comps(5, G, false);
+    spanning_tree(5, G);
     return 0;
 }
 
-enum node_color {white, grey, black, };
-
-bool bfs(size_t m, bool G[m][m], size_t start, size_t end) {
+bool
+bfs(size_t m, bool G[m][m], size_t start, size_t end) {
     int colors[m];
     for (size_t i = 0; i < m; ++i)
-        colors[i] = white;
-    queue_s* Queue = q_init();
+        colors[i] = COLOR_WHITE;
+    queue_t* Queue = q_init();
 
     q_push(Queue, start);
-    colors[start] = grey;
+    colors[start] = COLOR_GREY;
 
     while (!q_isempty(Queue)) {
         size_t curr = q_pop(Queue);
-        colors[curr] = black;
+        colors[curr] = COLOR_BLACK;
         if (curr == end) {
             q_destroy(Queue);
             return true;
         }
 
         for (size_t i = 0; i < m; i++)
-            if (G[curr][i] && colors[i] == white) {
+            if (G[curr][i] && colors[i] == COLOR_WHITE) {
                 q_push(Queue, i);
-                colors[i] = grey;
+                colors[i] = COLOR_GREY;
             }
     }
     q_destroy(Queue);
     return false;
 }
 
-size_t print_conn_comps(size_t m, bool G[m][m]) {
-    queue_s* comps[m];
+size_t
+get_conn_comps(size_t m, bool G[m][m], bool show) {
+    queue_t* comps[m];
     int colors[m];
     size_t num_comps = 0;
+
     for (size_t i = 0; i < m; ++i) {
         comps[i] = 0;
-        colors[i] = white;
+        colors[i] = COLOR_WHITE;
     }
 
     for (size_t root = 0; root < m; ++root) {
-        if (colors[root] == white) {
+        if (colors[root] == COLOR_WHITE) {
             bool G_conn[m][m];
-            for (size_t i = 0; i < m; i++)
-                for (size_t j = 0; j < m; ++j)
-                    G_conn[i][j] = false;
+            if (show) {
+                for (size_t i = 0; i < m; i++)
+                    for (size_t j = 0; j < m; ++j)
+                        G_conn[i][j] = false;
+            }
 
             /* DFS for all nodes in current component */
 
             comps[num_comps] = q_init();
-            queue_s* curr_queue = comps[num_comps];
+            queue_t* curr_queue = comps[num_comps];
             q_push(curr_queue, root);
-            colors[root] = grey;
+            colors[root] = COLOR_GREY;
+
             while (!q_isempty(curr_queue)) {
+
                 size_t curr = q_pop(curr_queue);
-                printf("%zu\n", curr);
                 if (curr != SIZE_MAX) {
-                    colors[curr] = black;
-                    for (size_t i = 0; i < m; ++i)
-                        if (G[curr][i]) {
-                            if (colors[i] == white)
-                                q_push(curr_queue, i);
-                            colors[i] = grey;
-                            G_conn[curr][i] = true;
+                    colors[curr] = COLOR_BLACK;
+
+                    for (size_t i = 0; i < m; ++i) {
+                        if (G[curr][i] && colors[i] == COLOR_WHITE) {
+                            q_push(curr_queue, i);
+                            colors[i] = COLOR_GREY;
+                            if (show) {
+                                G_conn[curr][i] = true;
+                            }
                         }
+                    }
+
                 }
             }
 
             /* Printing out connected component */
 
-            printf("\n");
-            for (size_t i = 0; i < m; i++) {
-                for (size_t j = 0; j < m; ++j)
-                    printf("%u\t", G_conn[i][j]);
+            if (show) {
+                printf("\n");
+                for (size_t i = 0; i < m; i++) {
+                    for (size_t j = 0; j < m; ++j)
+                        printf("%u\t", G_conn[i][j]);
+                    printf("\n");
+                }
                 printf("\n");
             }
-            printf("\n");
 
             ++num_comps;
         }
@@ -110,4 +125,13 @@ size_t print_conn_comps(size_t m, bool G[m][m]) {
         q_destroy(comps[i]);
 
     return num_comps;
+}
+
+bool
+spanning_tree(size_t m, bool G[m][m]) {
+    if (get_conn_comps(m, G, false) != 1) {
+        return false;
+    } else {
+        return !!get_conn_comps(m, G, true);
+    }
 }

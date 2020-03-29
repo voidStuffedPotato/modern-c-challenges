@@ -4,66 +4,74 @@
 #include <malloc.h>
 #include "queue.h"
 
-size_t q_pop(queue_s* Queue) {
-    if (Queue && Queue->length > 0) {
-        size_t last = (Queue->start + Queue->length - 1) % MAX_LENGTH;
-        Queue->length -= 1;
-        return Queue->buf[last];
+size_t
+q_pop(queue_t* queue) {
+    if (queue && queue->length > 0) {
+        size_t last = (queue->start + queue->length - 1) % MAX_LENGTH;
+        queue->length -= 1;
+        return queue->buf[last];
     }
     return SIZE_MAX;
 }
 
-size_t q_push(queue_s* Queue, size_t x) {
-    if (!Queue || Queue->length == MAX_LENGTH)
+size_t
+q_push(queue_t* queue, size_t x) {
+    if (!queue || queue->length == MAX_LENGTH)
         return SIZE_MAX;
-    Queue->start = (Queue->start - 1) % MAX_LENGTH;
-    Queue->length += 1;
-    Queue->buf[Queue->start] = x;
+    queue->start = (queue->start - 1) % MAX_LENGTH;
+    queue->length += 1;
+    queue->buf[queue->start] = x;
     return 0;
 }
 
-size_t q_peek(queue_s* Queue) {
-    if (!Queue)
+size_t
+q_peek(queue_t* queue) {
+    if (!queue)
         return SIZE_MAX;
-    if (Queue->length) {
-        return Queue->buf[(Queue->start + Queue->length - 1) % MAX_LENGTH];
+    if (queue->length) {
+        return queue->buf[(queue->start + queue->length - 1) % MAX_LENGTH];
     }
     return SIZE_MAX;
 }
 
-void q_print(queue_s* Queue) {
-    if (Queue) {
-    size_t last = (Queue->start + Queue->length) % MAX_LENGTH;
-    for (size_t i = Queue->start; i != last; i = (i + 1) % MAX_LENGTH)
-        printf("%zu\t", Queue->buf[i]);
+void
+q_print(queue_t* queue) {
+    if (queue) {
+    size_t last = (queue->start + queue->length) % MAX_LENGTH;
+    for (size_t i = queue->start; i != last; i = (i + 1) % MAX_LENGTH)
+        printf("%zu\t", queue->buf[i]);
     puts("");
     }
 }
 
-bool q_isempty(queue_s* Queue) {
-    if (Queue)
-        return (!(Queue->length));
+bool
+q_isempty(queue_t* queue) {
+    if (queue)
+        return (!(queue->length));
     else
         return true;
 }
 
-bool q_has(queue_s* Queue, size_t x) {
-    if (Queue) {
-    size_t last = (Queue->start + Queue->length) % MAX_LENGTH;
-    for (size_t i = Queue->start; i != last; i = (i + 1) % MAX_LENGTH)
-        if (Queue->buf[i] == x)
+bool
+q_has(queue_t* queue, size_t x) {
+    if (queue) {
+    size_t last = (queue->start + queue->length) % MAX_LENGTH;
+    for (size_t i = queue->start; i != last; i = (i + 1) % MAX_LENGTH)
+        if (queue->buf[i] == x)
             return true;
     }
     return false;
 }
 
-queue_s* q_init() {
-    queue_s* ret = calloc(1, sizeof(queue_s));
+queue_t *
+q_init() {
+    queue_t* ret = calloc(1, sizeof(queue_t));
     return ret;
 }
 
-queue_s* q_destroy(queue_s* Queue) {
-    free(Queue);
-    Queue = 0;
+queue_t *
+q_destroy(queue_t* queue) {
+    free(queue);
+    queue = 0;
     return 0;
 }
