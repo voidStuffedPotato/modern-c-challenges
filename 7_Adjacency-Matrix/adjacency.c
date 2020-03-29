@@ -27,27 +27,29 @@ int main() {
     return 0;
 }
 
+enum node_color {white, grey, black, };
+
 bool bfs(size_t m, bool G[m][m], size_t start, size_t end) {
     int colors[m];
     for (size_t i = 0; i < m; ++i)
-        colors[i] = 0;
+        colors[i] = white;
     queue_s* Queue = q_init();
 
     q_push(Queue, start);
-    colors[start] = 1;
+    colors[start] = grey;
 
     while (!q_isempty(Queue)) {
         size_t curr = q_pop(Queue);
-        colors[curr] = 2;
+        colors[curr] = black;
         if (curr == end) {
             q_destroy(Queue);
             return true;
         }
 
         for (size_t i = 0; i < m; i++)
-            if (G[curr][i] && colors[i] == 0) {
+            if (G[curr][i] && colors[i] == white) {
                 q_push(Queue, i);
-                colors[i] = 1;
+                colors[i] = grey;
             }
     }
     q_destroy(Queue);
@@ -60,11 +62,11 @@ size_t print_conn_comps(size_t m, bool G[m][m]) {
     size_t num_comps = 0;
     for (size_t i = 0; i < m; ++i) {
         comps[i] = 0;
-        colors[i] = 0;
+        colors[i] = white;
     }
 
     for (size_t root = 0; root < m; ++root) {
-        if (colors[root] == 0) {
+        if (colors[root] == white) {
             bool G_conn[m][m];
             for (size_t i = 0; i < m; i++)
                 for (size_t j = 0; j < m; ++j)
@@ -75,17 +77,17 @@ size_t print_conn_comps(size_t m, bool G[m][m]) {
             comps[num_comps] = q_init();
             queue_s* curr_queue = comps[num_comps];
             q_push(curr_queue, root);
-            colors[root] = 1;
+            colors[root] = grey;
             while (!q_isempty(curr_queue)) {
                 size_t curr = q_pop(curr_queue);
                 printf("%zu\n", curr);
                 if (curr != SIZE_MAX) {
-                    colors[curr] = 2;
+                    colors[curr] = black;
                     for (size_t i = 0; i < m; ++i)
                         if (G[curr][i]) {
-                            if (colors[i] == 0)
+                            if (colors[i] == white)
                                 q_push(curr_queue, i);
-                            colors[i] = 1;
+                            colors[i] = grey;
                             G_conn[curr][i] = true;
                         }
                 }
