@@ -3,7 +3,6 @@
  * linear algebra. Can you write functions that do vector-to-vector or
  * matrix-to-vector products at this point? What about Gauss elimination or
  * iterative algorithms for matrix inversion?
- * TODO: doxygen
  */
 
 #include <malloc.h>
@@ -18,6 +17,50 @@ void vec_to_scal(size_t n, double a[n], double lambda);
 void vec_w_sum(size_t n, double a[n], double b[n], double lambda);
 int gauss_elimination(size_t m, size_t n, double arr[m][n]);
 int inverse(size_t n, double[n][n], double*** inv);
+double **mat_to_mat(size_t m, size_t n, size_t k, double A[m][n],
+                    double B[n][k]);
+void print_vec(size_t n, double* a);
+void print_arr(size_t m, size_t n, double arr[m][n]);
+void print_mat(size_t m, size_t n, double** mat);
+
+int main() {
+    double A[4][4] = {[0] = {1, 0, 1, 0},
+                      [1] = {0, 0, 1, 0},
+                      [2] = {0, 2, 1, 0},
+                      [3] = {1, 4.5, 3, 1}
+                     };
+    double** inv = 0;
+    int ret = inverse(4, A, &inv);
+    if (ret == 0) {
+        if (inv) {
+            print_mat(4, 4, inv);
+            free(inv);
+        }
+    }
+    return 0;
+}
+
+void print_arr(size_t m, size_t n, double arr[m][n]) {
+    puts("[");
+    for (size_t i = 0; i < m; i++)
+        print_vec(n, arr[i]);
+    puts("]");
+}
+
+void print_vec(size_t n, double a[n]) {
+    fputs("[", stdout);
+    for (size_t i = 0; i < n; ++i)
+        printf("%.3f%s", a[i], (i < n - 1) ? "\t" : "");
+    puts("]");
+}
+
+void print_mat(size_t m, size_t n, double **arr) {
+    puts("[");
+    for (size_t i = 0; i < m; i++) {
+        print_vec(n, arr[i]);
+    }
+    puts("]");
+}
 
 double scal_prod(size_t n, double a[n], double b[n]) {
     double res = 0;
@@ -97,6 +140,15 @@ int gauss_elimination(size_t m, size_t n, double arr[m][n]) {
             return -1;
     }
     return 0;
+}
+
+double **mat_to_mat(size_t m, size_t n, size_t k, double A[m][n],
+                    double B[n][k]) {
+    double **ret_val = 0;
+    ret_val = calloc(m, sizeof(double*));
+    for (size_t i = 0; i < m; ++i)
+        ret_val[i] = vec_to_mat(n, k, A[i], B);
+    return ret_val;
 }
 
 int inverse(size_t n, double arr[n][n], double*** inv) {
