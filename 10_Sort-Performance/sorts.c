@@ -10,25 +10,6 @@ void            quick_sort(int target[static 1], int left, int right);
 bool            is_sorted(int target[static 1], size_t size);
 int             partition(int target[static 2], int left, int right);
 
-int 
-main() {
-
-    int array[6] = {
-        [0] = 5, [1] = 7, [2] = -24, [3] = 17, [4] = 0, [5] = 1,
-    };
-
-    print_arr(array, 6);
-    quick_sort(array, 0, 6);
-    print_arr(array, 6);
-
-    if (is_sorted(array, 6))
-        fputs("Sorting succeded\n", stderr);
-    else
-        fputs("Sorting failed\n", stderr);
-
-    return EXIT_SUCCESS;
-}
-
 void
 print_arr(int target[static 1], size_t size) {
     for (size_t i = 0; i < size; ++i) {
