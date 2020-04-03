@@ -1,3 +1,11 @@
+/*
+ * Can you extend the real and complex derivatives such that they receive the function F
+ * And the value x as a parameter?
+ * Can tou use the generic real derivatives to implement Newton's method for finding roots?
+ * Can you find the real zeros of polynomials?
+ * Can you find complex zeros of polynomials?
+ */
+
 #include <stdio.h>
 #include <math.h>
 
