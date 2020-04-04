@@ -13,8 +13,10 @@
 #include <math.h>
 #include "sorts.h"
 
-int* generate(size_t size);
-double measure(size_t size, size_t n, void f(int*, size_t, size_t));
+#define RANGE 1024
+
+int*            generate(size_t size);
+clock_t         measure(size_t size, size_t n, void f(int*, size_t, size_t));
 
 int
 main(int argc, char const * const argv[argc]) {
@@ -23,29 +25,33 @@ main(int argc, char const * const argv[argc]) {
     if (argc > 2 && argv[1] && argv[2]) {
         size = strtoull(argv[1], 0, 0);
         n = strtoull(argv[2], 0, 0);
-        double time_q = measure(size, n, quick_sort);
-        double time_m = measure(size, n, merge_sort);
-        printf("Quick sort: average %.1f, %zu times, %zu elements\n", time_q, n, size);
-        printf("Merge sort: average %.1f, %zu times, %zu elements\n", time_m, n, size);
+        clock_t time_q = measure(size, n, quick_sort);
+        clock_t time_m = measure(size, n, merge_sort);
+        printf("Quick sort: average %ld ms, %zu times, %zu elements\n", time_q, n, size);
+        printf("Merge sort: average %ld ms, %zu times, %zu elements\n", time_m, n, size);
+    } else {
+        puts("Usage: ./performance (Number of elements) (Number of iterations)");
     }
     return 0;
 }
 
-double
+clock_t
 measure(size_t size, size_t n, void f(int*, size_t, size_t)) {
-    int * tmp = 0;
-    double sum = 0;
-    time_t now = 0;
+    int* tmp = 0;
+    clock_t now = 0, avg = 0;
     for (size_t iter = 0; iter < n; ++iter) {
         tmp = generate(size);
         if (tmp) {
-            now = time(0);
+            now = clock();
             f(tmp, 0, size);
-            sum += difftime(time(0), now);
+            now = (clock() - now) / (CLOCKS_PER_SEC / 1000);
             free(tmp);
         }
+        avg += now;
     }
-    return sum;
+    if (n)
+        avg /= n;
+    return avg;
 }
 
 int *
@@ -53,7 +59,7 @@ generate(size_t size) {
     int* ret_val = malloc(sizeof(int) * size);
     if (ret_val) {
         for (size_t i = 0; i < size; ++i) {
-            ret_val[i] = rand() % 255;
+            ret_val[i] = rand() % RANGE;
         }
     }
     return ret_val;
